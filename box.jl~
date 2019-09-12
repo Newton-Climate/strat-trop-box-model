@@ -1,0 +1,54 @@
+function box(c,t, ems, params)
+
+    # 1. c(1) = OH
+# 2. C(3) = CH4
+# 3. c(5) = CO
+#c(7) = MCF
+#c(9) = N2O
+#C(11) = SF6
+
+# defining indecies 
+CH4_NH, CH4_SH, CO_NH, CO_SH, OH_NH, OH_SH, MCF_NH, MCF_SH, N2O_NH, N2O_SH, SF6_NH, SF6_SH = [i for i in 1:12];
+
+# CH4 + OH
+R1(CH4, OH) = params["k_ch4"] * c(CH4) * c(OH);
+
+# CO + Oh
+R2(CO, OH) = params["k_CO"] * c(CO) * c(OH);
+
+# MCF + OH 
+R3(MCF, OH) = params["k_mcf"] * c(MCF) * c(OH);
+inter_trop
+inter_trop(con_current, con_other, tau_i) = (c(con_other) - c(con_current))/tau_i;
+
+strat_trop(con_trop, con_strat, tau_s) = (c(con_strat) - c(con_trop))/tau_s;
+
+# indivitual kinetic equations:
+
+dCH4_NH(c, t) = s(CH4_NH) - R1(CH4_NH, OH_NH) - inter_trop(CH4_NH, CH4_SH, tau_i);
+dCH4_SH(c, t) = s(CH4_SH) - R1(CH4_SH, OH_NH) - inter_trop(CH4_NH, CH4_SH, tau_i);
+
+dOH_NH = s(OH_NH) - R1(CH4_NH, OH_NH) - R2(CO_NH, OH_NH);
+dOH_SH = s(OH_SH) - R1(CH4_SH, OH_SH) - R2(CO_SH, OH_SH);
+
+
+dCO_NH(c, t) = s(CO_NH) + R1(CH4_NH, OH_NH) - R2(CO_NH, OH_NH) - inter_trop(CO_NH, CO_SH, tau_s);
+dCO_SH(c, t) = s(CO_SH) + R1(CH4_SH, OH_SH) - R2(CO_SH, OH_SH) - inter_trop(CO_SH, CO_NH, tau_i);
+dMCF_NH(c, t) = s(MCF_NH) - R3(MCF_NH, OH_NH) - inter_trop(MCF_NH, MCF_SH, tau_i);
+dMCF_SH(c, t) = s(MCF_SH) - R3(MCF_SH, OH_SH) - inter_trop(MCF_SH, MCF_NH, tau_i);
+
+dN2O_NH(c, t) = s_N2O(NH) - inter_trop(N2O_NH, N2O_SH, tau_s);
+dN2O_SH(c, t) = s(N2O_SH) - inter_trop(N2O_SH, N2O_NH, tau_s);
+
+dSF6_NH(c, t) = s(SF6_NH) - inter_trop(SF6_NH, SF6_SH, tau_i);
+dSF6_SH(c, t) = s(SF6_SH) - inter_trop(SF6_SH, SF6_NH, tau_i);
+
+%return [dCH4_NH(c,t), dCH4_SH(c,t), dCO_NH(c,t), dCO_SH(c,t), dOH_NH(c,t), dOH_SH(c,t), dN2O_NH(c,t), dN2O_SH(c,t), dSF6_NH(c,t), dSF6_SH(c,t)];
+
+return [dCH4_NH(c,t), dCH4_SH(c,t), dCO_NH(c,t), dCO_SH(c,t), dOH_NH(c,t), dOH_SH(c,t), dN2O_NH(c,t), dN2O_SH(c,t), dSF6_NH(c,t), dSF6_SH(c,t)];
+
+end
+
+
+
+

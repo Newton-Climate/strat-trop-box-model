@@ -1,0 +1,14 @@
+# Run the box model
+
+include("getParams.jl")
+include("box.jl")
+using DifferentialEquations
+
+# create the params struct for easier input
+params = getParams();
+#IC = makeIC() # Get the initial conditions 
+#ems = getEms()
+
+
+#Run box model
+output = boxmodel_wrapper();

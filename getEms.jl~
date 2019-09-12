@@ -1,0 +1,29 @@
+function getEms(params, tspan)
+
+    ems = Array{Float64}(size(tspan), 10);
+
+    # Units of Tg/yr
+    ems[:,1] = 420;
+    ems[:,2] = 130;
+
+    # CO
+    ems[:,3] = 900;
+    ems[:,4] = 65;
+
+        # OH
+        ems[:,5] = 3e3;
+        ems[:,6] = 3e3;
+
+        # MCF
+        
+        ems[:,7] = 300;
+    ems[:,8] = 0;
+
+    # N@O
+   
+    ems[:,9] = 9.3;
+    ems[:,10] = 3.5;
+    return ems
+end
+
+        

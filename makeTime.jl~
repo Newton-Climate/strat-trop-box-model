@@ -1,0 +1,12 @@
+function makeTime(sYear, eYear, time_res)
+
+    if time_res == 'year'
+        time_vector = Dates.Date(sYear,1,1):Dates.Year(1):Dates.Date(eYear,1,1); # create hte yearly time vector
+    else
+        time_vector = Dates.Date(sYear,1,1):Dates.Month(1):Dates.Date(eYear,1,1); # create hte monthlyly time vector
+    end
+end
+
+
+
+
