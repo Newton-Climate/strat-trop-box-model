@@ -8,6 +8,9 @@ include("getEms.jl")
 using DifferentialEquations
 using Dates
 using Interpolations
+using ParameterizedFunctions
+
+
 
 
 sYear = 1980; # start year
@@ -23,10 +26,6 @@ params = getParams();
 IC = getIC(params); # Get the initial conditions 
 ems = getEms(params, tspan);
 ems2 = convertEms(ems, params, tspan);
-#IC[7:end] = [0, 0, 0, 0];
-
-
-
 
 
 #Run box model
