@@ -3,21 +3,30 @@ function getParams()
     # 2. Remember to use the unitful package to establsh units
     # 3. try using unitful to convert to ppb/day
 
-#    @unit molec "molec" Molecules 5u"yd" false
+    #    @unit molec "molec" Molecules 5u"yd" false
+
+    τᵢ = 1; # North-South troposphere exchagne time
+    τᵢ_strat = 3.3;             # Interhemispheric exchange rate in the stratosphere (Fabian et al., 1968)
+
+
+            # Unit conversions
+    DaysToS = 60 * 60 * 24;         # Days to Seconds
+    YrToDay = 365.25;               # Years to Days
+
         
-        # define rate constants
+    # define rate constants
     k_ch4 = 3.395e-15; # molec/cm^3/s
     k_co = 2e-13;         # reaction rate (cm3/molec/s) from Prather (1993)
     k_mcf = 6.05e-15; # molec/cm^3/s
-k_co_strat     = 12;            # (yr^-1) Assuming lifetime of 1 month in the stratosphere
-k_oh_strat     = 12;            # (yr^-1) Assuming lifetime of 1 month in the stratosphere
-k_ch4_other    = 1/151;         # (yr^-1) Soil uptake and tropospheric chlorine (6% of total loss; Kirschke et al., 2013)
-k_co_other     = 0;             # (yr^-1) Other CO losses (currently neglecting)
+    k_co_strat     = 12;            # (yr^-1) Assuming lifetime of 1 month in the stratosphere
+    k_oh_strat     = 12;            # (yr^-1) Assuming lifetime of 1 month in the stratosphere
+    k_co_strat   = k_co_strat   / YrToDay;
+    k_oh_strat   = k_oh_strat   / YrToDay;
+
+    k_ch4_other    = 1/151;         # (yr^-1) Soil uptake and tropospheric chlorine (6% of total loss; Kirschke et al., 2013)
+    k_co_other     = 0;             # (yr^-1) Other CO losses (currently neglecting)
 
         
-        # Unit conversions
-DaysToS = 60 * 60 * 24;         # Days to Seconds
-    YrToDay = 365.25;               # Years to Days
     
 # Masses
 m       = 5.15e21;              # Rough: Total mass of atmosphere in g
@@ -62,8 +71,8 @@ params["n_air"]   = n_air;
 # Rate constants/lifetimes
 params["k_ch4"]        = RxNconv * k_ch4;   
 params["k_mcf"]          = RxNconv * k_mcf;
-params["k_n2o_nh"]       = 1/(t_n2oNH * YrToDay);
-params["k_n2o_sh"]       = 1/(t_n2oSH * YrToDay);
+params["k_n2o_strat_nh"]       = 1/(t_n2oNH * YrToDay);
+params["k_n2o_strat_sh"]       = 1/(t_n2oSH * YrToDay);
 params["k_ch4_strat_nh"] = 1/(t_ch4_strat_nh * YrToDay);
 params["k_ch4_strat_sh"] = 1/(t_ch4_strat_sh * YrToDay);
 params["k_mcf_strat"]    = 1/(t_mcf_strat * YrToDay);
@@ -75,7 +84,10 @@ params["k_co_strat"]     = k_co_strat;
 params["k_co_other"]     = k_co_other;
 params["k_oh_strat"]     = k_oh_strat;
 params["RxNconv"]        = RxNconv;
-        params["DaysToS"]        = DaysToS;
+    params["DaysToS"]        = DaysToS;
+    params["τᵢ"] = τᵢ * YrToDay; # 365.25 days
+    params["τᵢ_strat"] = τᵢ_strat * YrToDay;
+
 
         return params;
 end #function
