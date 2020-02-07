@@ -17,9 +17,7 @@ using MAT
 #using Turing, DiffEqBayes, Optim
 using DiffEqParamEstim
 
-
-
-
+# Define parameters
 sYear = 1980; # start year
 eYear = 2030; # end year
 time_res = "year"; # time step resolution
@@ -27,52 +25,23 @@ tspan = makeTime(sYear, eYear, time_res); # create time vector
 flags = Dict{String, Bool}();
 flags["use_strat"] = true;
 
-
-
-
 # create the params struct for easier input
 parameters = getParams();
 IC = getIC(parameters); # Get the initial conditions 
-ems = getEms(parameters, tspan);
+ems = getEms(parameters, tspan); # Construct the state vector (emissions and exchange time)
 
-#obs = readMatObs("obs.mat", ems);
-#priors = defPriors(ems2);
-#Run box model
-#sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-#IC = sol.u[end];
+#Run box model with fixed 7-year STE lifetime
 sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-fixed_con = StructToArray(sol.u);
+fixed_con = StructToArray(sol.u, parameters["n_air"]);
 
+# perturb the STE lifetime τₜₛ
 ems[20:end,11] = 1.3 * ems[20:end,11];
 sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-pert_con = StructToArray(sol.u);
+pert_con = StructToArray(sol.u, parameters["n_air"]); # array with perturbed model results 
 
-#obs = obs';
-#priors = priors';
-
-#bayesian_result = turing_inference(model,Tsit5(),tspan,obs,priors,num_samples=10)
-#monte_prob = MonteCarloProblem(model)
-
-# obj = build_loss_objective(monte_prob,SRIW1(),L2Loss(tspan,obs,differ_weight=1.0,data_weight=0.5),maxiters=1000,
-#                                  verbose=false,verbose_opt=false,verbose_steps=1,num_monte=50)
-#result = Optim.optimize(obj, ems2, Optim.BFGS())
-
-
-n = parameters["n_air"];
+# Global average of CH4
 fixed_ch4 = (fixed_con[:,1] + fixed_con[:,2])/2;
 pert_ch4 = (pert_con[:,1] + pert_con[:,2])/2;
 
-# convert [OH] to ppb
-pert_con[:,5] = pert_con[:,5] * n/1e9;
-fixed_con[:,5] = fixed_con[:,5] * n/1e9;
-pert_con[:,6] = pert_con[:,6] * n/1e9;
-fixed_con[:,6] = fixed_con[:,6] * n/1e9;
+# Plot all boxes and species to figures/
 plotCon(fixed_con, tspan);
-
-y=[fixed_ch4, pert_ch4];
-time = [i for i =1:length(tspan)]
-plot(time, y, label=["fixed lifetime", "perturbed_lifetime"]);
-plot!(xlabel = "years", ylabel="ppb")
-plot!
-plot!(xticks=([1:5:tspan[end];], string.0:5:38)))
-savefig("strat-trop_exchange.pdf")
