@@ -55,9 +55,14 @@ s: the interpolated grid of parameters
 
     function dcdt(dc, c, p, t)
         s = interpSources(p, t);
-        τₛ = s[11];
-#                print(s[11], "\n")
-        # define the stratospheric exchange rate here, because we're fitting for it here
+        τₛₜ = s[11];
+        # Conserve mass between strat & trop, so:
+        # tau_ST = tau_TS/((p_surface-p_tropopause)/(p_tropopause-p_stratopause))
+        # where m_fac = (p_surface-p_tropopause)/(p_tropopause-p_stratopause)
+        #             = 5.7047
+        τₜₛ = τₛₜ / 5.7047;
+
+
 
 
         dc[CH4_NH] = s[CH4_NH] - k_ch4 * c[CH4_NH] * c[OH_NH] + (c[CH4_SH] - c[CH4_NH])/τᵢ;
@@ -82,36 +87,36 @@ s: the interpolated grid of parameters
 
         ### Stratospheric boxes
         if flag["use_strat"]
-            dc[CH4_NH] += (c[CH4_NHS] - c[CH4_NH]) / τₛ;
-            dc[CH4_SH] += (c[CH4_SHS] - c[CH4_SH]) / τₛ;
-            dc[CO_NH] += (c[CO_NHS] - c[CO_NH]) / τₛ;
-            dc[CO_SH] += (c[CO_SHS] - c[CO_SH]) / τₛ;
-            dc[OH_NH] += (c[OH_NHS] - c[OH_NH]) / τₛ;
-            dc[OH_SH] += (c[CO_SHS] - c[OH_SH]) / τₛ;
-            dc[MCF_NH] += (c[MCF_NHS] - c[MCF_NH]) / τₛ;
-            dc[MCF_SH] += (c[MCF_SHS] - c[MCF_SH]) / τₛ;
-            dc[N2O_NH] += (c[N2O_NHS] - c[N2O_NH]) / τₛ;
-            dc[N2O_SH] += (c[N2O_SHS] - c[N2O_SH]) / τₛ;
+            dc[CH4_NH] += (c[CH4_NHS] - c[CH4_NH]) / τₛₜ;
+            dc[CH4_SH] += (c[CH4_SHS] - c[CH4_SH]) / τₛₜ;
+            dc[CO_NH] += (c[CO_NHS] - c[CO_NH]) / τₛₜ;
+            dc[CO_SH] += (c[CO_SHS] - c[CO_SH]) / τₛₜ;
+            dc[OH_NH] += (c[OH_NHS] - c[OH_NH]) / τₛₜ;
+            dc[OH_SH] += (c[CO_SHS] - c[OH_SH]) / τₛₜ;
+            dc[MCF_NH] += (c[MCF_NHS] - c[MCF_NH]) / τₛₜ;
+            dc[MCF_SH] += (c[MCF_SHS] - c[MCF_SH]) / τₛₜ;
+            dc[N2O_NH] += (c[N2O_NHS] - c[N2O_NH]) / τₛₜ;
+            dc[N2O_SH] += (c[N2O_SHS] - c[N2O_SH]) / τₛₜ;
 
             # CH4 in Stratosphere
-            dc[CH4_NHS] = -k_ch4_strat_nh * c[CH4_NHS] + (c[CH4_NH] - c[CH4_NHS]) / τₛ + (c[CH4_SHS] - c[CH4_NHS]) / τᵢ_strat;
-            dc[CH4_SHS] = -k_ch4_strat_sh * c[CH4_SHS] + (c[CH4_SH] - c[CH4_SHS]) / τₛ + (c[CH4_NHS] - c[CH4_SHS]) / τᵢ_strat;
+            dc[CH4_NHS] = -k_ch4_strat_nh * c[CH4_NHS] + (c[CH4_NH] - c[CH4_NHS]) / τₜₛ + (c[CH4_SHS] - c[CH4_NHS]) / τᵢ_strat;
+            dc[CH4_SHS] = -k_ch4_strat_sh * c[CH4_SHS] + (c[CH4_SH] - c[CH4_SHS]) / τₜₛ + (c[CH4_NHS] - c[CH4_SHS]) / τᵢ_strat;
 
             # CO in stratosphere
-            dc[CO_NHS] = -k_co_strat * c[CO_NHS] + (c[CO_NH] - c[CO_NHS]) / τₛ + (c[CO_SHS] - c[CO_NHS]) / τᵢ_strat;
-            dc[CO_SHS] = -k_co_strat * c[CO_SHS] + (c[CO_SH] - c[CO_SHS]) / τₛ + (c[CO_NHS] - c[CO_SHS]) / τᵢ_strat;
+            dc[CO_NHS] = -k_co_strat * c[CO_NHS] + (c[CO_NH] - c[CO_NHS]) / τₜₛ + (c[CO_SHS] - c[CO_NHS]) / τᵢ_strat;
+            dc[CO_SHS] = -k_co_strat * c[CO_SHS] + (c[CO_SH] - c[CO_SHS]) / τₜₛ + (c[CO_NHS] - c[CO_SHS]) / τᵢ_strat;
 
             # OH in the stratopshere 
             dc[OH_NHS] = -k_oh_strat * c[OH_NHS] + (c[OH_SHS] - c[OH_NHS]) / τᵢ_strat; #+ (c[OH_NH] - c[OH_NHS]) / τₛ;
             dc[OH_SHS] = -k_oh_strat * c[OH_SHS] + (c[OH_NHS] - c[OH_SHS]) / τᵢ_strat; #+ (c[OH_SH] - c[OH_SHS]) / τₛ;
 
             # MCF in the Stratosphere
-            dc[MCF_NHS] = -k_mcf_strat * c[MCF_NHS] + (c[MCF_NH] - c[MCF_NHS]) / τₛ + (c[MCF_SHS] - c[MCF_NHS]) / τᵢ_strat;
-            dc[MCF_SHS] = -k_mcf_strat * c[MCF_SHS] + (c[MCF_SH] - c[MCF_SHS]) / τₛ + (c[MCF_NHS] - c[MCF_NHS]) / τᵢ_strat;
+            dc[MCF_NHS] = -k_mcf_strat * c[MCF_NHS] + (c[MCF_NH] - c[MCF_NHS]) / τₜₛ + (c[MCF_SHS] - c[MCF_NHS]) / τᵢ_strat;
+            dc[MCF_SHS] = -k_mcf_strat * c[MCF_SHS] + (c[MCF_SH] - c[MCF_SHS]) / τₜₛ + (c[MCF_NHS] - c[MCF_NHS]) / τᵢ_strat;
 
             # N2O in the Stratosphere
-            dc[N2O_NHS] = -k_n2o_strat_nh * c[N2O_NHS] + (c[N2O_NH] - c[N2O_NHS]) / τₛ + (c[N2O_SHS] - c[N2O_NHS]) / τᵢ_strat;
-            dc[N2O_SHS] = -k_n2o_strat_sh * c[N2O_SHS] + (c[N2O_SH] - c[N2O_SHS]) / τₛ + (c[N2O_NHS] - c[N2O_SHS]) / τᵢ_strat;
+            dc[N2O_NHS] = -k_n2o_strat_nh * c[N2O_NHS] + (c[N2O_NH] - c[N2O_NHS]) / τₜₛ + (c[N2O_SHS] - c[N2O_NHS]) / τᵢ_strat;
+            dc[N2O_SHS] = -k_n2o_strat_sh * c[N2O_SHS] + (c[N2O_SH] - c[N2O_SHS]) / τₜₛ + (c[N2O_NHS] - c[N2O_SHS]) / τᵢ_strat;
         end # stratospheric box construction
     end # function dcdt
 end # function MakeBox
@@ -133,14 +138,20 @@ function BoxModelWrapper(IC, ems, params, tspan, flags)
     return out, problem
 end
 
-function StructToArray(struct_in)
+function StructToArray(struct_in, n_air)
 
     num_rows = length(struct_in);
     num_cols = length(struct_in[1][:]);
     array_out = Array{Float64}(undef, num_rows, num_cols);
+
+    
     for i = 1:num_rows
         array_out[i,:] = struct_in[i][:];
     end #for loop
+
+    # convert [OH] from ppb to molec/cm³
+    OH_inds = [5, 6, 15, 16];
+    array_out[: , OH_inds] = array_out[: , OH_inds] * n_air / 1e9;
     return array_out;
 end #function StructToArray
 
