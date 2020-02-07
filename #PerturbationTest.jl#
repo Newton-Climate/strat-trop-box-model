@@ -35,45 +35,40 @@ IC = getIC(parameters); # Get the initial conditions
 ems = getEms(parameters, tspan);
 ems2 = convertEms(ems, parameters);
 
-#Run box model to steady-state
+#obs = readMatObs("obs.mat", ems);
+#priors = defPriors(ems2);
+#Run box model
 sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
 IC = sol.u[end];
 
-pert_ind = 12*50; # when to apply perturbation?
+pert_ind = 12*50;
 ems[pert_ind,1] += 10*12;
 ems[pert_ind,2] += 10*12;
-
-# Run box model with stratosphere 
 strat_sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-strat_con = StructToArray(strat_sol.u, parameters["n_air"]);
-
-# Run box model without stratosphere
+strat_con = StructToArray(strat_sol.u);
 flags["use_strat"] = false;
-
-#Run box model to steady-state
-sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-IC = sol.u[end];
-
 trop_sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-trop_con = StructToArray(trop_sol.u, parameters["n_air"]);
+trop_con = StructToArray(trop_sol.u);
 
-strat_nh , strat_sh = strat_con[end , 5], strat_con[end , 6];
-trop_nh , trop_sh = trop_con[end , 5], trop_con[end , 6];
+#obs = obs';
+#priors = priors';
 
-println("Tropospheric-only runs:")
-@printf("NH OH is %1.2e1 \n", trop_nh)
-@printf("SH OH is %1.2e1 \n", trop_sh)
-lifetime, ind = CalcPertLifetime(trop_con, pert_ind);
-print(lifetime/12, "\n");
+#bayesian_result = turing_inference(model,Tsit5(),tspan,obs,priors,num_samples=10)
+#monte_prob = MonteCarloProblem(model)
 
-println("Strat and Trop run:")
-@printf("NH OH is %1.2e1 \n", strat_nh)
-@printf("SH OH is %1.2e1 \n", strat_sh)
+# obj = build_loss_objective(monte_prob,SRIW1(),L2Loss(tspan,obs,differ_weight=1.0,data_weight=0.5),maxiters=1000,
+#                                  verbose=false,verbose_opt=false,verbose_steps=1,num_monte=50)
+#result = Optim.optimize(obj, ems2, Optim.BFGS())
+
+nh = sol.u[end][5];
+n = parameters["n_air"];
+sh = sol.u[end][6];
+@printf("NH OH is %1.2e1f \n", nh*n/1e9)
+@printf("SH OH is %1.2e1f \n", sh*n/1e9)
+
+
 lifetime, ind = CalcPertLifetime(strat_con, pert_ind);
 print(lifetime/12, "\n");
-
-
-
 time = [i for i = 1:length(tspan)];
 trop_ch4 = 0.5*(trop_con[:,1] + trop_con[:,2]);
 strat_ch4 = 0.5*(strat_con[:,1] + strat_con[:,2]);
@@ -84,5 +79,5 @@ plot!(tspan, strat_ch4, label="With Stratosphere", lw=3)
 ylabel!("ppb")
 xlabel!("time")
 plot!(xlims = (pert_ind - 5*12, time[end]), xticks=([i for i = pert_ind - 5*12:5*12:length(tspan)], string.([ i for i = -5:5:60])))
-savefig("figures/perturbation_test_strat.pdf")
+savefig("perturbation_test_strat.pdf")
 

@@ -1,0 +1,39 @@
+using MAT
+
+function readMatObs(filename, ems_array)
+    """
+REads .mat file contaiing all the observations 
+inputs:
+filename (str): name of file in format filename.mat
+
+outputs:
+obs: a dictionary containing all the obs
+"""
+    
+
+
+
+    var = matread(filename);
+    obs = var["obs"];
+    obs = makeObsArray(obs, ems_array);
+    return obs
+end #function readMatObs
+
+function makeObsArray(obs, ems)
+    """
+function to convert obs dictionary to array
+inputs:
+obs: as dict of observations 
+ems: array of ems
+outputs:
+obs_array: as array
+"""
+
+    rows, cols = size(ems);
+    obs_array = Array{Float64}(undef, rows, cols);
+    fieldnames = ["nh_ch4", "sh_ch4", "nh_co", "sh_co", "nh_oh", "sh_oh", "nh_mcf", "sh_mcf", "nh_n2o", "sh_n2o"];
+    for i = 1:length(fieldnames)
+        obs_array[:,i] = obs[fieldnames[i]];
+    end #for loop
+    return obs_array
+    end #function makeObsArray

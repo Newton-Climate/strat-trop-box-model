@@ -1,7 +1,7 @@
-# OBRun the box model
+# Run the box model
 using Printf, Plots
 include("getParams.jl")
-include("NewBox.jl")
+include("box.jl")
 include("getIC.jl")
 include("makeTime.jl")
 include("getEms.jl")
@@ -20,11 +20,9 @@ using DiffEqParamEstim
 
 
 sYear = 1980; # start year
-eYear = 2030; # end year
-time_res = "year"; # time step resolution
+eYear = 2100; # end year
+time_res = "month"; # time step resolution
 tspan = makeTime(sYear, eYear, time_res); # create time vector
-flags = Dict{String, Bool}();
-flags["use_strat"] = true;
 
 
 
@@ -33,18 +31,18 @@ flags["use_strat"] = true;
 parameters = getParams();
 IC = getIC(parameters); # Get the initial conditions 
 ems = getEms(parameters, tspan);
+ems2 = convertEms(ems, parameters);
 
 #obs = readMatObs("obs.mat", ems);
 #priors = defPriors(ems2);
 #Run box model
-#sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-#IC = sol.u[end];
-sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-fixed_con = StructToArray(sol.u);
+sol, model = BoxModelWrapper(IC, ems, parameters, tspan);
+IC = sol.u[end];
 
-ems[20:end,11] = 1.3 * ems[20:end,11];
-sol, model = BoxModelWrapper(IC, ems, parameters, tspan, flags);
-pert_con = StructToArray(sol.u);
+pert_ind = 12*50;
+ems[pert_ind,1] += 10*12;
+ems[pert_ind,2] += 10*12;
+sol, model = BoxModelWrapper(IC, ems, parameters, tspan);
 
 #obs = obs';
 #priors = priors';
@@ -56,22 +54,19 @@ pert_con = StructToArray(sol.u);
 #                                  verbose=false,verbose_opt=false,verbose_steps=1,num_monte=50)
 #result = Optim.optimize(obj, ems2, Optim.BFGS())
 
-
+nh = sol.u[end][5];
 n = parameters["n_air"];
-fixed_ch4 = (fixed_con[:,1] + fixed_con[:,2])/2;
-pert_ch4 = (pert_con[:,1] + pert_con[:,2])/2;
+sh = sol.u[end][6];
+@printf("NH OH is %1.2e1f \n", nh*n/1e9)
+@printf("SH OH is %1.2e1f \n", sh*n/1e9)
 
-# convert [OH] to ppb
-pert_con[:,5] = pert_con[:,5] * n/1e9;
-fixed_con[:,5] = fixed_con[:,5] * n/1e9;
-pert_con[:,6] = pert_con[:,6] * n/1e9;
-fixed_con[:,6] = fixed_con[:,6] * n/1e9;
+con = StructToArray(sol.u);
+lifetime, ind = CalcPertLifetime(con, pert_ind);
+print(lifetime/12, "\n");
 
+p = plot(tspan, con[:,1:2], label=["Northern Hemisphere", "Southern Hemisphere"]);
+ylabel!("ppb")
+xlabel!("time")
+plot!(xticks=([1:5*12:tspan[end];], string.(-60:5:60)))
+savefig("perturbation_test.pdf")
 
-#y=[fixed_ch4, pert_ch4];
-#time = [i for i =1:length(tspan)]
-#plot(time, y, label=["fixed lifetime", "perturbed_lifetime"]);
-#plot!(xlabel = "years", ylabel="ppb")
-#plot!
-#plot!(xticks=([1:5:tspan[end];], string.0:5:38)))
-#savefig("strat-trop_exchange.pdf")

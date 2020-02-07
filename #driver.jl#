@@ -1,6 +1,7 @@
 # OBRun the box model
 using Printf, Plots
 include("getParams.jl")
+include("PlotCon.jl")
 include("NewBox.jl")
 include("getIC.jl")
 include("makeTime.jl")
@@ -66,7 +67,7 @@ pert_con[:,5] = pert_con[:,5] * n/1e9;
 fixed_con[:,5] = fixed_con[:,5] * n/1e9;
 pert_con[:,6] = pert_con[:,6] * n/1e9;
 fixed_con[:,6] = fixed_con[:,6] * n/1e9;
-
+#plotCon(fixed_con, tspan);
 
 #y=[fixed_ch4, pert_ch4];
 #time = [i for i =1:length(tspan)]
@@ -75,3 +76,4 @@ fixed_con[:,6] = fixed_con[:,6] * n/1e9;
 #plot!
 #plot!(xticks=([1:5:tspan[end];], string.0:5:38)))
 #savefig("strat-trop_exchange.pdf")
+
