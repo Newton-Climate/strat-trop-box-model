@@ -7,7 +7,7 @@ include("getIC.jl")
 include("makeTime.jl")
 include("getEms.jl")
 include("makeObs.jl")
-include("PertLifetimes.jl")
+include("lifetimes.jl")
 #include("invert.jl")
 using DifferentialEquations
 using Dates
@@ -67,12 +67,13 @@ pert_con[:,5] = pert_con[:,5] * n/1e9;
 fixed_con[:,5] = fixed_con[:,5] * n/1e9;
 pert_con[:,6] = pert_con[:,6] * n/1e9;
 fixed_con[:,6] = fixed_con[:,6] * n/1e9;
-plotCon(fixed_con, tspan);
+#plotCon(fixed_con, tspan);
 
-y=[fixed_ch4, pert_ch4];
-time = [i for i =1:length(tspan)]
-plot(time, y, label=["fixed lifetime", "perturbed_lifetime"]);
-plot!(xlabel = "years", ylabel="ppb")
-plot!
-plot!(xticks=([1:5:tspan[end];], string.0:5:38)))
-savefig("strat-trop_exchange.pdf")
+#y=[fixed_ch4, pert_ch4];
+#time = [i for i =1:length(tspan)]
+#plot(time, y, label=["fixed lifetime", "perturbed_lifetime"]);
+#plot!(xlabel = "years", ylabel="ppb")
+#plot!
+#plot!(xticks=([1:5:tspan[end];], string.0:5:38)))
+#savefig("strat-trop_exchange.pdf")
+
