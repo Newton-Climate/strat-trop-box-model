@@ -1,7 +1,8 @@
 using Distributions, Turing, Random
+include("getEms.jl")
 
-function defPriors(ems_prior)
-    """
+function defPriors(ems_prior, params)
+    """ms
 Defines the priors of the parameters to be optimized
 Arguements:
 ems_prior: the array of parameters to be optimized
@@ -24,9 +25,12 @@ array of distributions corresponding to the parameters
     #    σ_mcf_nh  = max([1.5*ones(size(ems_prior[:,7])),.2*ems_prior[:,7]],[],2).^2;
     σ_MCF_NH = 10;
     σ_MCF_SH  =   0.5;
-    σ_SF6 = 2;
+    σ_τ = 2.5; # yr
 
-    σ = [σ_CH4, σ_CH4,  σ_CO, σ_CO, σ_OH, σ_OH, σ_N2O, σ_N2O, σ_MCF_NH, σ_MCF_SH, σ_SF6, σ_SF6];
+    
+
+    σ = [σ_CH4, σ_CH4,  σ_CO, σ_CO, σ_OH, σ_OH, σ_MCF_NH, σ_MCF_SH, σ_N2O, σ_N2O, σ_τ]';
+    σ = convertEms(σ, params);
 
     # define the μ
     μ = ems_prior[1,:];
