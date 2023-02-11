@@ -91,3 +91,36 @@ params["RxNconv"]        = RxNconv;
 
         return params;
 end #function
+"""
+     linear interpolation, given set of X and V values, and an x query
+     assumes X values are in strictly increasing order
+    
+         Differences from matlab built-in :
+               much, much faster
+    %       if coordinate is exactly on the spot, doesn't look at neighbors.  e.g. interpolate([blah, blah2], [0, NaN], blah) returns 0 instead of NaN
+        %       extends values off the ends instead of giving NaN
+        %      
+
+"""
+function lininterp1_ind(X, x)
+    
+        pindex = findlast(x .>= X)
+        index = findfirst(x .<= X)
+
+        if isempty(pindex)
+            @warn "interpolating before beginning";
+            pindex = index;
+            slope = 0.0;
+        elseif isempty(index)
+            @warn "interpolating after end"
+            index = pindex;
+            slope = 0.0;
+        elseif pindex == index
+            slope = 0.0;
+        else
+            Xp = X[pindex];
+            slope = (x - Xp) / (X[index] - Xp);
+        end
+    return pindex, index, slope
+end
+

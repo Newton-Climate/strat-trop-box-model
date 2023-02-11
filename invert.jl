@@ -30,10 +30,13 @@ array of distributions corresponding to the parameters
     
 
     σ = [σ_CH4, σ_CH4,  σ_CO, σ_CO, σ_OH, σ_OH, σ_MCF_NH, σ_MCF_SH, σ_N2O, σ_N2O, σ_τ]';
-    σ = convertEms(σ, params);
+#    σ = convertEms(σ, params);
+
 
     # define the μ
     μ = ems_prior[1,:];
+    σ = 0.1 * μ;
+
 
     for i=1:rows
         for j = 1:cols
@@ -45,3 +48,14 @@ end #function DefPriors
 
 
     
+@model function infer_ems(ode_model, priors, obs)
+    println("running MCMC chain")
+    p = priors
+    prob = remake(ode_model, p=p)
+    #predicted = solve(prob) #,Tsit5(),saveat=0.1)
+    predicted = solve(problem, alg_hints = "stiff") #,saveat=tspan, dtmax=params["YrToDay"]/100);
+end
+
+#hmc_model = infer_ems(model, priors, obs)
+#sample(hmc_model, NUTS(.65),1000)
+#chain = mapreduce(c -> sample(hmc_model, NUTS(.65),1000), chainscat, 1:3)

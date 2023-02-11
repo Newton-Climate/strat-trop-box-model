@@ -1,12 +1,5 @@
 include("getEms.jl")
 
-function interp(s, t)
-    
-    itp = interpolate(s, BSpline(Cubic(Line(OnGrid()))))
-    sitp = Interpolations.scale(itp, t)
-    return sitp
-end
-
 function interpSources(s, t)
         """
 function to interpolate sources in time for differential equation slutions
@@ -18,9 +11,15 @@ output:
 s: the interpolated grid of parameters
 """
 
-    f = [interp(s[:,i]) for i =1:size(s)[2]]
-    out = map(x->x(t), f)
-    return out
+        
+
+                num_time, num_species = size(s);
+
+        species_grid = [i for i =1:num_species];
+        grid = (tspan, species_grid);
+        intp = interpolate(grid, s, Gridded(Linear()));
+        s_out = intp(t, species_grid);
+        return s_out
     end #function interpSources
 
 function MakeBox(params, tspan, flag)
@@ -58,17 +57,7 @@ kx_nh, kx_sh = 0.59*DaysToSec, 0.823*DaysToSec;
         
 
     function dcdt(dc, c, p, t)
-        s = p;#interpSources(p, t);
-        ind                      = findfirst(t .== tspan);        # Find the index for this timestep
-if ind !== nothing            # Do we already have it?
-    s                    = s[ind,:];
-else                        # If not, we'll interpolate
-    pindex, index, slope = lininterp1_ind(tspan,t);
-    s                    = s[pindex,:]      * (1 - slope) + slope * s[index,:];
-end
-        @show s
-        @show t
-
+        s = interpSources(p, t);
 #        s = p;
        # println(s)
         τₛₜ = 7*365
@@ -79,11 +68,13 @@ end
         τₜₛ = τₛₜ / 5.7047;
 
 
+
+
         dc[CH4_NH] = s[CH4_NH] - k_ch4 * c[CH4_NH] * c[OH_NH] + (c[CH4_SH] - c[CH4_NH])/τᵢ;
         dc[CH4_SH] = s[CH4_SH] - k_ch4*c[CH4_SH]*c[OH_SH] + (c[CH4_NH] - c[CH4_SH])/τᵢ;
 
         # CO reactions
-        dc[CO_NH] = s[CO_NH] + k_ch4*c[CH4_NH]*c[OH_NH] - k_co*c[CO_NH]*c[OH_NH] + (c[CO_SH] - dc[CO_NH])/τᵢ;
+        dc[CO_NH] = s[CO_NH] + k_ch4*c[CH4_NH]*c[OH_NH] - k_co*c[CO_NH]*c[OH_NH] + (c[CO_SH] - c[CO_NH])/τᵢ;
         dc[CO_SH] = s[CO_SH] + k_ch4*c[CH4_SH]*c[OH_SH] - k_co*c[CO_SH]*c[OH_SH] + (c[CO_NH] - c[CO_SH])/τᵢ;
 
         #OH reactions
@@ -132,22 +123,21 @@ end
             dc[N2O_NHS] = -k_n2o_strat_nh * c[N2O_NHS] + (c[N2O_NH] - c[N2O_NHS]) / τₜₛ + (c[N2O_SHS] - c[N2O_NHS]) / τᵢ_strat;
             dc[N2O_SHS] = -k_n2o_strat_sh * c[N2O_SHS] + (c[N2O_SH] - c[N2O_SHS]) / τₜₛ + (c[N2O_NHS] - c[N2O_SHS]) / τᵢ_strat;
         end # stratospheric box construction
-    end # function cdt
+    end # function dcdt
 end # function MakeBox
 
 function BoxModelWrapper(IC, ems, params, tspan, flags)
 
     # convert ems from Tg/yr to ppb/day
     ems = convertEms(ems, params);
-    ts = range(tspan[1], stop=tspan[end], length=length(tspan))
+    ts = (tspan[1], tspan[end]);
     model = MakeBox(params, tspan, flags);
-#forcing = [interp(ems[:,i], ts) for i=1:10]
 
-    t_range = (tspan[1], tspan[end])
+
     # run the model
-    problem = ODEProblem(model, IC, t_range, ems)
+    problem = ODEProblem(model, IC, ts, ems);
 
-        out = 1 # solve(problem, alg_hints = "stiff",saveat=tspan, dtmax=params["YrToDay"]/24);
+        out = solve(problem, alg_hints = "stiff",saveat=tspan, dtmax=params["YrToDay"]/24);
     return out, problem
 end
 

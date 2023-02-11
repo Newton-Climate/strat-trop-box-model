@@ -1,7 +1,7 @@
 function getEms(params, tspan)
 
     t_length = length(tspan);
-    ems = Array{Float64}(undef, t_length, 11);
+    ems = Array{Float64}(undef, t_length, 10);
     x = ones(t_length,1);
 
     # Units of Tg/yr
@@ -18,15 +18,15 @@ function getEms(params, tspan)
         ems[:,6] = 0.5*S_OH*x;
 
     # MCF
-    ems[:,7] = 0*x;
-    ems[:,8] = 0*x;
+    ems[:,7] = 1*x;
+    ems[:,8] = 1*x;
 
     # N2O
-    ems[:,9] = 9.3*x;
-    ems[:,10] = 3.5*x;
+    ems[:,9] = 9.3e3*x;
+    ems[:,10] = 3.5e3*x;
 
     # stratosphere - troposphere exchange lifetime
-    ems[:,11] = 8 * x; # 7 years initial guess from (Stohl et al, 2001)
+#    ems[:,11] = 8 * x; # 7 years initial guess from (Stohl et al, 2001)
     
     return ems
 end
@@ -43,10 +43,10 @@ function convertEms(ems, params)
     ems_out = Array{Float64}(undef, size(ems));
 
     # call Tg2ppb for all species
-    for i = 1:length(conv_factors)
+    for i = 1:size(ems)[2]
         ems_out[:,i] = Tg2ppb(ems[:,i], conv_factors[i]);
     end
-    ems_out[:,end] = ems[:,11] * params["YrToDay"];
+    #ems_out[:,end] = ems[:,11] * params["YrToDay"];
     return ems_out
 end
 
